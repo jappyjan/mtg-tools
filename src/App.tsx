@@ -137,7 +137,7 @@ function NumberField({
           onBlur={() => {
             const number = normalize(draft);
             setDraft(String(number));
-            onChange(number);
+            if (number !== value) onChange(number);
           }}
         />
         <button
@@ -335,6 +335,9 @@ function Editor({
               placeholder="Find a real card on Scryfall…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
             />
           </div>
           {status && (
