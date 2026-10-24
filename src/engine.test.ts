@@ -256,3 +256,26 @@ describe("saved and shared scenarios", () => {
     expect(c.art).toBeUndefined();
   });
 });
+
+describe("phase participation and imported input boundaries", () => {
+  it("an unassigned first-strike creature does not create a damage step", () => {
+    const { b, d } = duel();
+    b.assignments = {};
+    d.abilities = ["firstStrike"];
+    expect(simulate(b).steps.map((s) => s.name)).toEqual(["Regular damage"]);
+  });
+  it("a creature regenerated before a fight can still fight", () => {
+    const { b, a, d } = duel(3, 3, 1, 3);
+    b.mode = "fight";
+    a.marked = 3;
+    a.regeneration = 1;
+    const r = simulate(b);
+    expect(r.units[a.id].damage).toBe(1);
+    expect(r.units[d.id].dead).toBe(true);
+  });
+  it("rejects reserved object keys as creature identifiers", () => {
+    const b = demoBoard();
+    b.attackers[0].id = "__proto__";
+    expect(() => parseBoard(b)).toThrow();
+  });
+});

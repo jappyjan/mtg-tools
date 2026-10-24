@@ -321,7 +321,7 @@ export function simulate(board: Board): Result {
   const stateActions = () => {
     const deaths: string[] = [];
     for (const u of Object.values(r.units)) {
-      if (u.dead || u.removed) continue;
+      if (u.dead || (!fight && u.removed)) continue;
       const s = getStats(u);
       const zero = s.toughness <= 0;
       const lethal = u.damage >= s.toughness || u.touched;
@@ -331,7 +331,7 @@ export function simulate(board: Board): Result {
           u.damage = 0;
           u.touched = false;
           u.removed = true;
-          u.reason = "Regenerated; removed from combat";
+          u.reason = fight ? "Regenerated" : "Regenerated; removed from combat";
           continue;
         }
         u.dead = true;
@@ -349,7 +349,7 @@ export function simulate(board: Board): Result {
   if (initial.length)
     r.steps.push({ name: "Before damage", events: [], deaths: initial });
   const alive = (id: string) =>
-    r.units[id] && !r.units[id].dead && !r.units[id].removed;
+    r.units[id] && !r.units[id].dead && (fight || !r.units[id].removed);
   let assignedSoFar: Record<string, number> = {};
   let assignedTouch = new Set<string>();
   const allocate = (u: Unit, ids: string[], player: boolean, step: string) => {
@@ -424,9 +424,9 @@ export function simulate(board: Board): Result {
   };
   const first =
     !fight &&
-    [...attackers, ...blockers].some(
-      (c) => has(c, "firstStrike") || has(c, "doubleStrike"),
-    );
+    [...attackers, ...blockers.filter((c) => board.assignments[c.id]?.length)]
+      .filter((c) => alive(c.id))
+      .some((c) => has(c, "firstStrike") || has(c, "doubleStrike"));
   const phases = fight
     ? ["Fight"]
     : first
@@ -584,7 +584,11 @@ export function simulate(board: Board): Result {
   r.blockDeaths = Object.values(r.units).filter(
     (u) => u.side === "block" && u.dead,
   ).length;
-  if ([...attackers, ...blockers].some((c) => c.review))
+  if (
+    [...attackers, ...blockers.filter((c) => board.assignments[c.id]?.length)]
+      .filter((c) => alive(c.id))
+      .some((c) => c.review)
+  )
     r.warnings.push(
       "Imported cards may have additional text. Review their Oracle text and set any extra effects manually.",
     );

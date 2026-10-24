@@ -57,7 +57,7 @@ npm run preview
 
 The static base path is `/mtg-tools/`, configured in `vite.config.ts`. GitHub Actions runs the combat tests and TypeScript build before deploying `dist` to GitHub Pages. Enable **Settings → Pages → Source → GitHub Actions** when forking.
 
-Architecture: a pure TypeScript rules engine in `src/engine.ts`, regression cases in `src/engine.test.ts`, React UI in `src/main.tsx`, and responsive styling in `src/style.css`. Persisted and shared data is validated and bounded before use. The PWA uses Vite's Workbox integration. No runtime API keys.
+Architecture: a pure TypeScript rules engine in `src/engine.ts`, regression cases in `src/engine.test.ts`, React UI in `src/App.tsx`, and responsive styling in `src/style.css`. Persisted and shared data is validated and bounded before use. The PWA uses Vite's Workbox integration. No runtime API keys.
 
 ## Credits and license
 

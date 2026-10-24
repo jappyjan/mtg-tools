@@ -106,6 +106,10 @@ function NumberField({
   max?: number;
   hint?: string;
 }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const normalize = (text: string) =>
+    Math.max(min, Math.min(max, Math.trunc(Number(text) || 0)));
   return (
     <label className="number-field">
       <span>{label}</span>
@@ -124,10 +128,17 @@ function NumberField({
           inputMode={min < 0 ? "text" : "numeric"}
           min={min}
           max={max}
-          value={value}
-          onChange={(e) =>
-            onChange(Math.max(min, Math.min(max, Number(e.target.value) || 0)))
-          }
+          value={draft}
+          onChange={(e) => {
+            const text = e.target.value;
+            setDraft(text);
+            if (/^-?\d+$/.test(text)) onChange(normalize(text));
+          }}
+          onBlur={() => {
+            const number = normalize(draft);
+            setDraft(String(number));
+            onChange(number);
+          }}
         />
         <button
           type="button"
@@ -372,6 +383,21 @@ function Editor({
             className="editor-tabs"
             role="tablist"
             aria-label="Creature settings"
+            onKeyDown={(e) => {
+              const ids = ["stats", "abilities", "advanced"];
+              const direction =
+                e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+              if (!direction && e.key !== "Home" && e.key !== "End") return;
+              e.preventDefault();
+              const next =
+                e.key === "Home"
+                  ? "stats"
+                  : e.key === "End"
+                    ? "advanced"
+                    : ids[(ids.indexOf(tab) + direction + 3) % 3];
+              setTab(next);
+              document.getElementById(`tab-${next}`)?.focus();
+            }}
           >
             {[
               ["stats", "Stats & buffs"],
@@ -383,6 +409,7 @@ function Editor({
                 id={`tab-${id}`}
                 type="button"
                 role="tab"
+                tabIndex={tab === id ? 0 : -1}
                 aria-selected={tab === id}
                 aria-controls="editor-panel"
                 onClick={() => setTab(id)}
@@ -628,6 +655,9 @@ function Editor({
                 <BookOpen size={15} /> Oracle text · review additional effects
               </summary>
               <p>{c.oracle}</p>
+              {c.attribution && (
+                <small>Artwork © {c.attribution} · via Scryfall</small>
+              )}
               <small>
                 Only selected abilities and configured effects are simulated.
                 Set variable stats (*), triggers, equipment, and other card text
@@ -1419,18 +1449,16 @@ export default function App() {
             </button>
           </div>
         </div>
-        <div className="mobile-tabs" role="tablist" aria-label="Workspace view">
+        <div className="mobile-tabs" role="group" aria-label="Workspace view">
           <button
-            role="tab"
-            aria-selected={mobile === "board"}
+            aria-pressed={mobile === "board"}
             onClick={() => setMobile("board")}
           >
             Battlefield{" "}
             <span>{board.attackers.length + board.blockers.length}</span>
           </button>
           <button
-            role="tab"
-            aria-selected={mobile === "results"}
+            aria-pressed={mobile === "results"}
             onClick={() => setMobile("results")}
           >
             Outcome <span>{clean ? result.lifeLoss : "!"}</span>

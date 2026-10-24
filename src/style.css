@@ -1972,7 +1972,7 @@ footer button {
     color: #a0a992;
     padding: 0 1px;
   }
-  .mobile-tabs button[aria-selected="true"] {
+  .mobile-tabs button[aria-pressed="true"] {
     color: #3d6333;
     border-bottom-color: #4b7541;
   }
