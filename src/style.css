@@ -2627,3 +2627,14 @@ footer button {
     margin-left: auto;
   }
 }
+
+/* Avoid iOS focus zoom while preserving the user's ability to pinch-zoom.
+   Include coarse pointers so this also covers phones in landscape and tablets. */
+@media (max-width: 800px), (any-pointer: coarse) {
+  .text-field input,
+  .search-wrap input,
+  .allocations input,
+  .fight-selectors select {
+    font-size: 16px;
+  }
+}
